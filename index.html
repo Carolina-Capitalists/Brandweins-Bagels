@@ -172,12 +172,31 @@
   .process-grid{ display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start;}
 
   @media (max-width:920px){
-    .process-pin{ height:56vh; margin-bottom:12px;}
-    .process-media{ height:100%; max-height:none;}
-    .process-grid{ grid-template-columns:1fr;}
-    .process-steps-text{gap:22vh; padding:6vh 0 30vh;}
-    .process-step-text{opacity:0.35;}
-    .process-step-text.active{opacity:1;}
+    .process-grid{ display:none; }
+  }
+
+  /* Mobile process carousel */
+  .process-carousel{ display:none; }
+  @media (max-width:920px){
+    .process-carousel{ display:block; padding:0 0 8px; }
+    .process-carousel-track{
+      display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory;
+      padding:4px 20px 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    }
+    .process-carousel-track::-webkit-scrollbar{ display:none; }
+    .process-slide{ flex:0 0 84%; scroll-snap-align:center; }
+    .process-slide-media{ position:relative; border-radius:var(--radius); overflow:hidden; aspect-ratio:4/5; box-shadow:0 20px 40px rgba(4,33,60,0.22);}
+    .process-slide-media img{ width:100%; height:100%; object-fit:cover; display:block;}
+    .process-slide-media::after{ content:""; position:absolute; inset:0; background:linear-gradient(0deg, rgba(4,33,60,0.78), transparent 55%);}
+    .process-slide-caption{ position:absolute; left:18px; bottom:16px; z-index:2; color:#fff;}
+    .process-slide-caption .eyebrow{ color:var(--gold);}
+    .process-slide-caption h3{ font-size:1.3rem; color:#fff; margin-top:6px;}
+    .process-slide-body{ padding:14px 4px 0;}
+    .process-slide-body .num{ font-family:'Space Grotesk',sans-serif; font-size:0.82rem; color:var(--gold); font-weight:700; letter-spacing:0.08em; margin:0 0 6px;}
+    .process-slide-body p{ color:var(--ink-soft); font-size:0.96rem; line-height:1.6; margin:0;}
+    .process-dots{ display:flex; justify-content:center; gap:8px; margin-top:14px;}
+    .process-dot{ width:8px; height:8px; border-radius:50%; background:var(--line); border:none; padding:0; cursor:pointer; transition:background .2s ease, transform .2s ease;}
+    .process-dot.active{ background:var(--gold); transform:scale(1.3);}
   }
 
   /* MENU */
@@ -524,6 +543,55 @@
           <h3>Straight from kettle to oven</h3>
           <p>Baked until deep golden-brown outside and pillowy soft within — ready for a shmear, a stack of lox, or a fully built deli sandwich.</p>
         </div>
+      </div>
+    </div>
+
+    <div class="wrap process-carousel">
+      <div class="process-carousel-track" id="processCarouselTrack">
+        <div class="process-slide" data-step="0">
+          <div class="process-slide-media">
+            <img src="https://images.pexels.com/photos/5903446/pexels-photo-5903446.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Hands shaping and rolling bagel dough into rings">
+            <div class="process-slide-caption">
+              <p class="eyebrow">Step 01</p>
+              <h3>Rolled &amp; proofed</h3>
+            </div>
+          </div>
+          <div class="process-slide-body">
+            <p class="num">01 — ROLLED &amp; PROOFED</p>
+            <p>Dough made with organic, non-GMO Lindley Mills flour from Graham, NC is hand-rolled into rings and left to proof overnight, building the flavor a shortcut bagel skips entirely.</p>
+          </div>
+        </div>
+        <div class="process-slide" data-step="1">
+          <div class="process-slide-media">
+            <img src="https://images.pexels.com/photos/20008786/pexels-photo-20008786.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="A pot of boiling water with steam rising">
+            <div class="process-slide-caption">
+              <p class="eyebrow">Step 02</p>
+              <h3>Boiled in the kettle</h3>
+            </div>
+          </div>
+          <div class="process-slide-body">
+            <p class="num">02 — BOILED IN THE KETTLE</p>
+            <p>Every ring gets boiled for a few minutes before baking. This extra step is what makes the outside thin, crispy and glossy while the inside stays light and airy.</p>
+          </div>
+        </div>
+        <div class="process-slide" data-step="2">
+          <div class="process-slide-media">
+            <img src="https://images.pexels.com/photos/34485380/pexels-photo-34485380.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Golden baked bagels fresh from the oven">
+            <div class="process-slide-caption">
+              <p class="eyebrow">Step 03</p>
+              <h3>Baked till golden</h3>
+            </div>
+          </div>
+          <div class="process-slide-body">
+            <p class="num">03 — BAKED TILL GOLDEN</p>
+            <p>Baked until deep golden-brown outside and pillowy soft within — ready for a shmear, a stack of lox, or a fully built deli sandwich.</p>
+          </div>
+        </div>
+      </div>
+      <div class="process-dots" id="processDots">
+        <button class="process-dot active" data-step="0" aria-label="Step 1"></button>
+        <button class="process-dot" data-step="1" aria-label="Step 2"></button>
+        <button class="process-dot" data-step="2" aria-label="Step 3"></button>
       </div>
     </div>
   </section>
@@ -1109,6 +1177,30 @@
       setStep(Math.min(idx, 2));
     }, { passive: true });
   }
+
+  // mobile process carousel (swipe-driven, independent of scroll-pin above)
+  const carouselTrack = document.getElementById('processCarouselTrack');
+  const carouselSlides = document.querySelectorAll('.process-slide');
+  const carouselDots = document.querySelectorAll('.process-dot');
+  if (carouselTrack && carouselSlides.length) {
+    const slideObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const idx = Number(entry.target.dataset.step);
+          carouselDots.forEach(d => d.classList.toggle('active', Number(d.dataset.step) === idx));
+        }
+      });
+    }, { root: carouselTrack, threshold: 0.6 });
+    carouselSlides.forEach(s => slideObserver.observe(s));
+
+    carouselDots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        const target = document.querySelector(`.process-slide[data-step="${dot.dataset.step}"]`);
+        if (target) target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      });
+    });
+  }
+
   // ---- Bag / cart ----
   let bag = [];
 
